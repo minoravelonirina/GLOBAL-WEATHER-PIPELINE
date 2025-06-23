@@ -1,9 +1,11 @@
+# import sys
+# sys.path.insert(0, "/home/minosoa/airflow/dags/global_weather_pipeline")
 from airflow import DAG
-from airflow.operators.python_operator import PythonOperator
+from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
-from scripts.fetch_historical import fetch_and_process_data
-from scripts.database_utils import save_to_db
-
+from global_weather_pipeline.scripts.fetch_historical import fetch_and_process_data
+# from .scripts.fetch_historical import fetch_and_process_data
+# from global_weather_pipeline.scripts.database_utils import save_to_db
 
 # Configuration par defaut du DAG
 default_args = {
@@ -33,22 +35,17 @@ with DAG(
             task_id=f'fetch_{city.lower().replace(" ", "_")}',
             python_callable=fetch_and_process_data,
             op_kwargs={
-                "city": city,
-                "api_key": "{{ var.value.API_KEY }}"  # Récupère la variable Airflow
+                "cities": [city],
+                "api_key": "{{ var.value.API_KEY }}",  # Récupère la variable Airflow,
+                "date": "{{ds}}"
             },
         )
         for city in CITIES
     ]
     
-    # ========== Save task =========== #
-    save_task = PythonOperator(
-        task_id="save_to_database",
-        python_callable=save_to_db,
-    )
-    
     # ======= Orchestration ======== #
     for task in fetch_tasks:
-        task >> save_task
+        task
 
 
 
