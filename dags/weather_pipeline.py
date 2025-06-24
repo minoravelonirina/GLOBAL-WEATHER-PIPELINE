@@ -4,6 +4,7 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
 from global_weather_pipeline.scripts.fetch_historical import fetch_and_process_data
+from global_weather_pipeline.scripts.fetch_weather import fetch_realtime_weather
 # from .scripts.fetch_historical import fetch_and_process_data
 # from global_weather_pipeline.scripts.database_utils import save_to_db
 
@@ -29,22 +30,28 @@ with DAG(
     max_active_runs=1,          # Pour eviter les conflits
 ) as dag:
     
-    # =========== Fetch task ============ #
-    fetch_tasks = [
+      # =========== Fetch realtime weather ============ #
+    fetch_realtime_weather_tasks = [
         PythonOperator(
             task_id=f'fetch_{city.lower().replace(" ", "_")}',
-            python_callable=fetch_and_process_data,
-            op_args=[city, "{{ var.value.API_KEY }}", "{{ds}}"],
+            python_callable=fetch_realtime_weather,
+            op_args=[city, "{{ var.value.API_KEY }}"],
         )
         for city in CITIES
     ]
-    
-    # ======= Orchestration ======== #
-    # for task in fetch_tasks:
-    #     task
-    fetch_tasks
 
+     # =========== Fetch historical weather ============ #
+    fetch_historical_weather_tasks = PythonOperator(
+            task_id="fetch_global_weather_data",
+            python_callable=fetch_and_process_data,
+            op_args=[CITIES, "{{ds}}"]
+        )
 
+   
+    # ======= Orchestration ======== #s
+    fetch_realtime_weather_tasks >> fetch_historical_weather_tasks
+
+   
 
     # fetch_task = PythonOperator(
     #     task_id="fetch_weather_data",

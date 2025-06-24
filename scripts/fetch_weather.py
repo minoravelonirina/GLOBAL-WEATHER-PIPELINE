@@ -4,11 +4,34 @@ import numpy as np
 from datetime import datetime
 import logging
 import os
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+import requests
+from pathlib import Path
 
-def fetch_realtime_weather(city, api_key):
+def fetch_realtime_weather(city, api_key) -> bool:
     """Récupère les données temps réel via OpenWeather et les stocke dans un CSV."""
 
-    csv_file = "global_weather_pipeline/data/realtime_weather.csv"
+     # 1. Configuration des chemins de manière robuste
+    project_dir = Path(__file__).parent.parent  # Remonte de 2 niveaux
+    data_dir = project_dir / "global_weather_pipeline" / "data"
+    csv_file = data_dir / "realtime_weather.csv"
+
+    # 2. Création du répertoire si inexistant
+    data_dir.mkdir(parents=True, exist_ok=True)
+
+    # csv_file = "global_weather_pipeline/data/realtime_weather.csv"
+
+    session = requests.Session()
+    
+    # Configuration des retries
+    retries = Retry(
+        total=3,
+        backoff_factor=1,
+        status_forcelist=[500, 502, 503, 504]
+    )
+    
+    session.mount('https://', HTTPAdapter(max_retries=retries))
 
     try:
         url = "http://api.openweathermap.org/data/2.5/weather"
@@ -19,14 +42,16 @@ def fetch_realtime_weather(city, api_key):
             'lang': 'fr'
         }
 
-        response = requests.get(url, params=params, timeout=10).jsn()
+        response = requests.get(url, params=params, timeout=(3.05, 27))
         response.raise_for_status()
+
+        data=response.json()
         
         weather_data = {
             "city": city,
-            "temp": response["main"]["temp"],
-            "humidity": response["main"]["humidity"],
-            "pressure": response["main"]["pressure"],
+            "temp": data["main"]["temp"],
+            "humidity": data["main"]["humidity"],
+            "pressure": data["main"]["pressure"],
             "timestamp": datetime.now()
         }
 
@@ -42,17 +67,17 @@ def fetch_realtime_weather(city, api_key):
         # Sauvegarder dans CSV
         df.to_csv(csv_file, index=False)
         
-        return weather_data
+        return True
         
     except requests.exceptions.RequestException as e:
         logging.error(f"Error reseau/API pour {city}: {str(e)}")
-        return None
+        return False
     except KeyError as e:
         logging.error(f"Champ manquant dans la reponse pour {city}: {str(e)}")
-        return None
+        return False
     except Exception as e:
         logging.error(f"Error inattendue pour {city}: {str(e)}")
-        return None
+        return False
 
 # def fetch_and_process_data(cities):
 #     """Combine données temps réel + historiques et calcule les métriques."""
