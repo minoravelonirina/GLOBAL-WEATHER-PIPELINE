@@ -34,18 +34,15 @@ with DAG(
         PythonOperator(
             task_id=f'fetch_{city.lower().replace(" ", "_")}',
             python_callable=fetch_and_process_data,
-            op_kwargs={
-                "cities": [city],
-                "api_key": "{{ var.value.API_KEY }}",  # Récupère la variable Airflow,
-                "date": "{{ds}}"
-            },
+            op_args=[city, "{{ var.value.API_KEY }}", "{{ds}}"],
         )
         for city in CITIES
     ]
     
     # ======= Orchestration ======== #
-    for task in fetch_tasks:
-        task
+    # for task in fetch_tasks:
+    #     task
+    fetch_tasks
 
 
 

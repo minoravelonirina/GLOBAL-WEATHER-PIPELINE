@@ -2,12 +2,14 @@ import requests
 import pandas as pd
 import numpy as np
 from datetime import datetime
-from global_weather_pipeline.scripts.calculate_metrics import calculate_variability
 import logging
 import os
 
-def fetch_realtime_weather(city, api_key, csv_file='realtime_weather_data.csv'):
+def fetch_realtime_weather(city, api_key):
     """Récupère les données temps réel via OpenWeather et les stocke dans un CSV."""
+
+    csv_file = "global_weather_pipeline/data/realtime_weather.csv"
+
     try:
         url = "http://api.openweathermap.org/data/2.5/weather"
         params = {
@@ -17,7 +19,8 @@ def fetch_realtime_weather(city, api_key, csv_file='realtime_weather_data.csv'):
             'lang': 'fr'
         }
 
-        response = requests.get(url, params=params).json()  # Note: j'ai ajouté params ici
+        response = requests.get(url, params=params, timeout=10).jsn()
+        response.raise_for_status()
         
         weather_data = {
             "city": city,

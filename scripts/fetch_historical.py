@@ -25,7 +25,7 @@ def fetch_and_process_data(cities, date):
         pd.DataFrame: DataFrame contenant les données traitées
     """
 
-    historical_data_path="global_weather_pipeline.data/historical_weather.csv"
+    # historical_data_path="global_weather_pipeline.data/historical_weather.csv"
     # Validation des entrées
     if not cities or not isinstance(cities, list):
         logger.error("La liste des villes doit être une liste non vide")
