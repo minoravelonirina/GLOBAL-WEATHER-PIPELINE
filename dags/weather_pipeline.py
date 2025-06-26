@@ -1,79 +1,70 @@
-# import sys
-# sys.path.insert(0, "/home/minosoa/airflow/dags/global_weather_pipeline")
+# Mon_DAG_Meteo.py (ou le nom de votre fichier DAG)
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
-from global_weather_pipeline.scripts.fetch_historical import fetch_and_process_data
-from global_weather_pipeline.scripts.fetch_weather import fetch_realtime_weather
-# from .scripts.fetch_historical import fetch_and_process_data
-# from global_weather_pipeline.scripts.database_utils import save_to_db
 
-# Configuration par defaut du DAG
+# Importations des scripts externes. Assurez-vous que ces chemins sont corrects
+# et que Python/Airflow peut les trouver.
+from global_weather_pipeline.scripts.fetch_weather import fetch_realtime_weather
+from global_weather_pipeline.scripts.extract_historical import extract_historical_data # Nouvelle importation
+from global_weather_pipeline.scripts.process_and_combine_data import calculate_and_combine_weather_metrics # Nouvelle importation
+
+# Configuration par défaut du DAG
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
-    'start_date': datetime(2025, 6, 19),
+    'start_date': datetime(2025, 6, 19)
 }
 
-# Liste des villes a traiter
+# Liste des villes à traiter
 CITIES = [
-    'Paris', 'Berlin', 'Washington D.C.', 'Tokyo', 'Pékin', 'New Delhi', 
-    'Brasilia', 'Moscou', 'Londres', 'Rome', 'Ottawa', 'Madrid', 
+    'Paris', 'Berlin', 'Washington D.C.', 'Tokyo', 'Pékin', 'New Delhi',
+    'Brasilia', 'Moscou', 'Londres', 'Rome', 'Ottawa', 'Madrid',
     'Canberra', 'Mexico', 'Pretoria', 'Le Caire', 'Abuja', 'Antananarivo'
-    ]
+]
 
 with DAG(
-    'weather_comparaison_pipeline',
+    dag_id='weather_pipeline_separated_tasks', # ID du DAG mis à jour
     default_args=default_args,
-    schedule='@daily', # Execution quotidienne
-    catchup=False,              # Ne pas rattraper les executions passees
-    max_active_runs=1,          # Pour eviter les conflits
+    schedule='@daily',
+    catchup=False,
+    max_active_runs=1
 ) as dag:
-    
-      # =========== Fetch realtime weather ============ #
-    fetch_realtime_weather_tasks = [
-        PythonOperator(
-            task_id=f'fetch_{city.lower().replace(" ", "_")}',
+
+    # 1. Tâche pour s'assurer que les données historiques sont prêtes
+    # Cette tâche pourrait être plus complexe si les données historiques doivent être téléchargées
+    # ou agrégées quotidiennement. Ici, elle vérifie juste la disponibilité du CSV.
+    extract_historical_task = PythonOperator(
+        task_id='extract_and_validate_historical_data',
+        python_callable=extract_historical_data,
+        op_args=[CITIES, "{{ds}}", [2008, 2009, 2010]]
+    )
+
+    # 2. Tâches de récupération des don nées temps réel (une par ville)
+    fetch_realtime_tasks = []
+    for city in CITIES:
+        task_id = f'fetch_realtime_for_{city.lower().replace(" ", "_").replace(".", "")}'
+        fetch_realtime_task = PythonOperator(
+            task_id=task_id,
             python_callable=fetch_realtime_weather,
-            op_args=[city, "{{ var.value.API_KEY }}"],
+            op_args=[city, "{{ var.value.API_KEY }}", "{{ds}}"],
         )
-        for city in CITIES
-    ]
+        fetch_realtime_tasks.append(fetch_realtime_task)
 
-     # =========== Fetch historical weather ============ #
-    fetch_historical_weather_tasks = PythonOperator(
-            task_id="fetch_global_weather_data",
-            python_callable=fetch_and_process_data,
-            op_args=[CITIES, "{{ds}}"]
-        )
+    # 3. Tâche de fusion et de calcul des métriques
+    # Cette tâche dépend à la fois de l'extraction historique et de toutes les extractions temps réel.
+    calculate_and_combine_metrics_task = PythonOperator(
+        task_id="calculate_combined_weather_metrics",
+        python_callable=calculate_and_combine_weather_metrics,
+        op_args=[CITIES, "{{ds}}"], # Passe la liste des villes et la date d'exécution
+    )
 
-   
-    # ======= Orchestration ======== #s
-    fetch_realtime_weather_tasks >> fetch_historical_weather_tasks
+    # ======= Orchestration des Tâches ======== #
+    # Les tâches de récupération temps réel ET la tâche d'extraction historique
+    # doivent toutes se terminer AVANT que la tâche de calcul des métriques ne commence.
+    extract_historical_task >> calculate_and_combine_metrics_task
+    fetch_realtime_tasks >> calculate_and_combine_metrics_task
 
-   
-
-    # fetch_task = PythonOperator(
-    #     task_id="fetch_weather_data",
-    #     python_callable=fetch_and_process_data,
-    #     op_kwargs=[CITIES, "{{var.value.API_KEY}}", "{{ds}}"],
-    #     # op_kwargs={"cities": ["Paris", "Berlin", "Tokyo", "Antananarivo"]},
-    # )
-
-    
-# /projet_meteo/
-# │
-# ├── /dags/                          # Dossier Airflow
-# │   └── weather_pipeline.py          # DAG principal
-# │
-# ├── /scripts/                       # Scripts Python
-# │   ├── fetch_weather.py            # Collecte des données (OpenWeather + Kaggle)
-# │   ├── calculate_metrics.py        # Calcul stabilité/variabilité
-# │   └── database_utils.py           # Gestion base de données
-# │
-# ├── /data/                          # Données brutes
-# │   ├── historical_weather.csv      # Données Kaggle (3 ans)
-# │   └── realtime_weather.json       # Exemple de sortie API
-# │
-# ├── weather_dashboard.pbix          # Fichier Power BI
-# └── README.md                       # Documentation
+    # Vous pouvez ajouter ici des tâches supplémentaires, par exemple pour sauvegarder les résultats
+    # dans une base de données après le calcul des métriques.
+    # calculate_and_combine_metrics_task >> save_metrics_to_database_task
