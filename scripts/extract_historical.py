@@ -1,53 +1,54 @@
+import requests
 import pandas as pd
-from pathlib import Path
+import numpy as np
 from datetime import datetime
+import logging
+import os
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+import requests
+from pathlib import Path
 
-def extract_historical_data(cities: list, extract_date: str, years: int = 3) -> None:
-    """
-    Filtre et stocke les données historiques pour les villes spécifiées et les N années
-    
-    Args:
-        cities: Liste des villes à filtrer
-        years: Nombre d'années à conserver
-    """
+def extract_historical_data(cities: list, years: int = 4) -> None:
     project_dir = Path(__file__).parent.parent
-    input_path = project_dir/"data"/"historical_weather.csv"
+    input_path = project_dir/"data"/"GlobalWeatherRepository.csv"
     output_dir = project_dir/"data"/"historique"
+    
+    cols = [
+        'location_name',
+        'last_updated',
+        'temperature_celsius',
+        'humidity',
+        'pressure_mb'
+    ]
 
+    # Chargement avec vérification
+    df = pd.read_csv(input_path, parse_dates=['last_updated'], usecols=cols)
     
-    # Chargement des données
-    df = pd.read_csv(input_path, parse_dates=['date'])
+    # Extraction du nom de ville (version robuste)
+    # df['city'] = df['timezone'].str.extract(r'/([^/]+)$')[0].str.replace('_', ' ')
+    df = df.rename(columns={'location_name': 'city'})
+    df = df.rename(columns={'last_updated' : 'timestamp'} )
+    # Filtrage correct
+    max_year = df['timestamp'].dt.year.max()
+    min_year = max_year - years
     
-    # Trouver la dernière année disponible dans les données
-    max_data_year = df['date'].dt.year.max()
-    min_year = max_data_year - years + 1  # +1 pour inclure l'année de départ
+    # Vérification que cities est une liste non vide
+    if not isinstance(cities, list) or len(cities) == 0:
+        raise ValueError("L'argument cities doit être une liste non vide")
     
-    filtered_df = df[
-        (df['ville'].isin(cities)) & 
-        (df['date'].dt.year >= min_year)
-    ].copy()
+    # Filtrage en deux étapes
+    filtered_df = df[df['city'].isin(cities)].copy()  # D'abord par villes
+    filtered_df = filtered_df[filtered_df['timestamp'].dt.year >= min_year]  # Puis par années
     
-    # Création du répertoire de sortie
-    output_path = Path(output_dir)
-    output_path.mkdir(exist_ok=True)
+    # Sauvegarde
+    output_dir.mkdir(exist_ok=True, parents=True)
     
-    # Stockage par ville et année
     for ville in cities:
-        ville_dir = output_path / ville
-        ville_dir.mkdir(exist_ok=True)
-        
-        ville_data = filtered_df[filtered_df['ville'] == ville]
-        
-        for year in range(min_year, max_data_year + 1):
-            year_data = ville_data[ville_data['date'].dt.year == year]
-            if not year_data.empty:
-                year_data.to_csv(ville_dir / f"{year}.csv", index=False)
-
-# Exemple d'utilisation
-# cities_of_interest = ["Paris", "Lyon", "Marseille"]
-# extract_historical_data(
-#     input_path="historical_weather.csv",
-#     output_dir="processed_data",
-#     cities=cities_of_interest,
-#     years=3
-# )
+        ville_data = filtered_df[filtered_df['city'] == ville]
+        if not ville_data.empty:
+            ville_dir = output_dir / ville.replace(" ", "_")
+            ville_dir.mkdir(exist_ok=True)
+            
+            for year, year_data in ville_data.groupby(ville_data['timestamp'].dt.year):
+                year_data.to_csv(ville_dir/f"{year}.csv", index=False)

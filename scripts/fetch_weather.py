@@ -49,7 +49,7 @@ def fetch_realtime_weather(city:str, api_key:str, date:str) -> bool:
             "temp": data["main"]["temp"],
             "humidity": data["main"]["humidity"],
             "pressure": data["main"]["pressure"],
-            "timestamp": datetime.utcnow().isoformat() + "Z"
+            "timestamp": datetime.now().isoformat() + "Z"
         }
 
         # Gestion du CSV
