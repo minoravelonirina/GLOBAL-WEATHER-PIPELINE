@@ -14,9 +14,8 @@ default_args = {
 
 # Liste des villes à traiter
 CITIES = [
-    'Paris', 'Berlin', 'Washington D.C.', 'Tokyo', 'Pékin', 'New Delhi',
-    'Brasilia', 'Moscou', 'Londres', 'Rome', 'Ottawa', 'Madrid',
-    'Canberra', 'Mexico', 'Pretoria', 'Le Caire', 'Abuja', 'Antananarivo'
+    'Paris', 'Berlin', 'Tokyo', 'New Delhi','Rome', 'Ottawa', 'Madrid',
+    'Canberra', 'Pretoria', 'Abuja', 'Antananarivo'
 ]
 
 with DAG(

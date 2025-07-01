@@ -1,178 +1,111 @@
-# global_weather_pipeline/scripts/process_and_combine_data.py
 import pandas as pd
 from datetime import datetime
 import logging
-import os
 from pathlib import Path
 from typing import List
 from global_weather_pipeline.scripts.calculate_metrics import calculate_variability
 
-####
-# try:
-#     from global_weather_pipeline.scripts.calculate_metrics import calculate_variability
-# except ImportError:
-#     # Fallback pour le développement/test si le module n'est pas directement accessible.
-#     logging.getLogger(__name__).warning(
-#         "Impossible d'importer calculate_variability depuis calculate_metrics. "
-#         "Utilisation d'une implémentation simple (écart-type) pour le développement."
-#     )
-#     def calculate_variability(data: pd.Series) -> float:
-#         """Calcule l'écart-type d'une série de données."""
-#         if data.empty or len(data) < 2:
-#             return 0.0
-#         return data.std()
-####
-
 logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 def calculate_and_combine_weather_metrics(cities: List[str], date: str) -> bool:
-    """
-    Lit les données météorologiques historiques et en temps réel,
-    calcule les métriques et les sauvegarde.
-
-    Args:
-        cities: Liste des noms de villes à traiter.
-        date: Date d'exécution du DAG au format 'YYYY-MM-DD'.
-
-    Returns:
-        bool: True si le traitement des métriques a réussi, False en cas d'échec.
-    """
     try:
         processing_date = datetime.strptime(date, "%Y-%m-%d")
         date_str = processing_date.strftime("%Y-%m-%d")
-        
-        ####
-        # if not cities or not all(isinstance(c, str) and c.strip() for c in cities):
-        #     logger.error("La liste 'cities' doit être une liste non vide de noms de villes valides.")
-        #     return False
-        ####
 
-        # Normaliser les city dans la list en minuscule
-        cities_normalized = [city.strip().lower() for city in cities if city.strip()]
-
-        project_root = Path(__file__).resolve().parent.parent
-        data_dir = project_root/"data"
-
-        historical_path = data_dir/"historique" 
-        realtime_path = data_dir/"realtime"/date_str 
-        
-        historical_data = pd.DataFrame()
-        realtime_data = []
-        
-        if historical_path.exists():
-            for city_dir in historical_path.iterdir():
-                if city_dir.is_dir():
-                    city_name = city_dir.name
-                    city_data = []
-                    
-                    for year_file in city_dir.glob('*.csv'):
-                        try:
-                            df = pd.read_csv(year_file, parse_dates=['timestamp'])
-                            city_data.append(df)
-                        except Exception as e:
-                            print(f'Erreur lecture {year_file}: {str(e)}')
-                            
-                    if city_data:
-                        historical_data = pd.concat(city_data, ignore_index=True)
-                        
-        
-        # Vérifiez d'abord si le répertoire existe
-        if not realtime_path.exists():
-            logger.error(f"Le répertoire des données temps réel n'existe pas: {realtime_path}")
+        if not cities or not all(isinstance(c, str) and c.strip() for c in cities):
+            logger.error("La liste 'cities' doit être une liste non vide de noms de villes valides.")
             return False
 
-        # Lisez les fichiers CSV du répertoire realtime_path
-        for file in realtime_path.glob('*.csv'):
+        cities_normalized = [city.strip().lower() for city in cities if city.strip()]
+        project_root = Path(__file__).resolve().parent.parent
+        data_dir = project_root / "data"
+        historical_path = data_dir / "historique"
+        realtime_path = data_dir / "realtime" / date_str
+        output_dir = data_dir / "processed" / date_str
+        output_file = output_dir / "weather_metrics.csv"
+
+        historical_data = []
+
+        if historical_path.exists():
+            for city_dir in historical_path.iterdir():
+                logger.info(f"Nom du dossier ville détecté : {city_dir.name}")
+                logger.info(f"Villes normalisées attendues : {cities_normalized}")
+                if city_dir.is_dir() and city_dir.name in cities_normalized:
+                    for year_file in city_dir.glob('*.csv'):
+                        try:
+                            df = pd.read_csv(year_file, parse_dates=['timestamp'], header=0)
+                            logger.info(f"Lecture {year_file.name} : {df.shape[0]} lignes")
+                            logger.info(df.head().to_string(index=False))
+                            historical_data.append(df)
+                            logger.warning(f"{len(historical_data)} fichiers historique chargés.")
+                            
+                        except Exception as e:
+                            logger.warning(f"Erreur lecture {year_file}: {e}")
+
+        if not realtime_path.exists():
+            logger.error(f"Répertoire temps réel manquant: {realtime_path}")
+            return False
+
+        realtime_data = []
+        for file in realtime_path.glob("*.csv"):
             try:
                 df = pd.read_csv(file)
                 realtime_data.append(df)
+                logger.info(f"{len(realtime_data)} fichiers temps réel chargés.")
+                
             except Exception as e:
-                logger.error(f"Erreur lecture {file}: {str(e)}")
-        
-        output_dir = data_dir/"processed"/date_str
-        output_file = output_dir/"weather_metrics.csv"
+                logger.warning(f"Erreur lecture {file}: {e}")
 
-        output_dir.mkdir(parents=True, exist_ok=True)
-        logger.info(f"Répertoire de sortie '{output_dir}' vérifié/créé.")
-
-        # Chargement des données 
-        try:
-            
-            historical_df = historical_data
-            realtime_df = pd.DataFrame([realtime_data])
-            
-            logger.info("Fichiers de données historiques et temps réel chargés pour la combinaison.")
-        except FileNotFoundError as e:
-            logger.error(f"Un fichier source est manquant pour le calcul des métriques : {e}. Assurez-vous que les tâches précédentes ont généré '{historical_path}' et '{realtime_path}'.")
-            return False
-        except pd.errors.EmptyDataError:
-            logger.error("Un fichier de données source est vide pour le calcul des métriques.")
-            return False
-        except Exception as e:
-            logger.error(f"Erreur lors du chargement des fichiers CSV pour combinaison : {e}", exc_info=True)
+        if not historical_data or not realtime_data:
+            logger.error("Pas assez de données historiques ou temps réel.")
             return False
 
-        if historical_df.empty or realtime_df.empty:
-            logger.error("L'un des DataFrames source est vide. Impossible de calculer les métriques.")
-            return False
+        historical_df = pd.concat(historical_data, ignore_index=True)
+        realtime_df = pd.concat(realtime_data, ignore_index=True)
 
         for df in [historical_df, realtime_df]:
             if 'city' in df.columns:
                 df['city'] = df['city'].astype(str).str.strip().str.lower()
-            else:
-                logger.warning("La colonne 'city' est manquante dans un DataFrame source.")
 
         processed_metrics = []
-        
-        logger.info(f"DataFrame columns: {realtime_df.columns.tolist()}")
+        logger.info(f"Fichiers historiques trouvés : {[str(f) for f in historical_path.rglob('*.csv')]}")
+        logger.info(f"Fichiers temps réel trouvés : {[str(f) for f in realtime_path.glob('*.csv')]}")
+
 
         for city in cities_normalized:
-            city_display_name = city.capitalize()
-
-
             city_history = historical_df[historical_df["city"] == city]
             city_realtime = realtime_df[realtime_df["city"] == city]
 
             if city_history.empty or city_realtime.empty:
-                logger.warning(f"Données incomplètes (historique ou temps réel) pour '{city_display_name}'. Cette ville sera ignorée.")
+                logger.warning(f"Données manquantes pour '{city}'. Ignoré.")
                 continue
 
             try:
-                if "temp" not in city_history.columns:
-                    logger.warning(f"La colonne 'temp' est manquante dans les données historiques pour '{city_display_name}'.")
-                    continue
                 temp_values = city_history["temp"].dropna()
-                if len(temp_values) < 2:
-                    logger.warning(f"Données de température historiques insuffisantes (< 2 points) pour '{city_display_name}'.")
-                    temp_variability = 0.0
-                else:
-                    temp_variability = calculate_variability(temp_values)
-
-                result = {
-                    "city": city_display_name,
-                    "date": date_str,
-                    "temp_variability": temp_variability,
-                    "stability_score": 1 / (1 + temp_variability) if temp_variability is not None else None,
-                    "processing_time": datetime.now().isoformat()
-                }
+                temp_variability = calculate_variability(temp_values) if len(temp_values) >= 2 else 0.0
 
                 realtime_record = city_realtime.iloc[0]
+
+                result = {
+                    "city": city.capitalize(),
+                    "date": date_str,
+                    "timestamp": datetime.now().isoformat(),
+                    "temp_variability": temp_variability,
+                    "stability_score": 1 / (1 + temp_variability)
+                }
+
                 for col in ["temp", "humidity"]:
-                    col_name = f"realtime_{col}"
-                    if col in realtime_record and pd.notna(realtime_record[col]):
-                        result[col_name] = realtime_record[col]
-                    else:
-                        result[col_name] = None
+                    result[f"realtime_{col}"] = realtime_record[col] if col in realtime_record and pd.notna(realtime_record[col]) else None
 
                 processed_metrics.append(result)
-                logger.info(f"Métriques combinées calculées pour '{city_display_name}'.")
+                logger.info(f"Métriques traitées pour {city.capitalize()}")
 
             except Exception as e:
-                logger.error(f"Erreur lors du calcul des métriques pour '{city_display_name}': {str(e)}", exc_info=True)
-                continue
+                logger.error(f"Erreur métriques {city}: {e}", exc_info=True)
 
         if not processed_metrics:
-            logger.warning("Aucune métrique combinée valide n'a été traitée.")
+            logger.warning("Aucune métrique valide générée.")
             return False
 
         new_metrics_df = pd.DataFrame(processed_metrics)
@@ -180,26 +113,20 @@ def calculate_and_combine_weather_metrics(cities: List[str], date: str) -> bool:
         if output_file.exists():
             try:
                 existing_df = pd.read_csv(output_file)
-                existing_df['city'] = existing_df['city'].astype(str)
-                existing_df['timestamp'] = existing_df['timestamp'].astype(str)
-                new_metrics_df['city'] = new_metrics_df['city'].astype(str)
-                new_metrics_df['timestamp'] = new_metrics_df['timestamp'].astype(str)
-
-                combined_df = pd.concat([existing_df, new_metrics_df], ignore_index=True)
-                final_df = combined_df.drop_duplicates(subset=["city", "timestamp"], keep="last")
-                logger.info(f"Fichier de métriques existant mis à jour. Total lignes: {len(final_df)}.")
+                final_df = pd.concat([existing_df, new_metrics_df], ignore_index=True)
+                final_df.drop_duplicates(subset=["city", "timestamp"], keep="last", inplace=True)
             except Exception as e:
-                logger.error(f"Erreur lors de la mise à jour du fichier de métriques existant: {e}. Sauvegarde des nouvelles données seulement.", exc_info=True)
+                logger.warning(f"Erreur fusion fichier existant: {e}")
                 final_df = new_metrics_df
         else:
             final_df = new_metrics_df
-            logger.info("Création d'un nouveau fichier de métriques.")
 
+        output_dir.mkdir(parents=True, exist_ok=True)
         final_df.to_csv(output_file, index=False)
-        logger.info(f"Métriques météorologiques combinées sauvegardées avec succès dans {output_file}")
+        logger.info(f"Fichier sauvegardé : {output_file}")
 
         return True
 
     except Exception as e:
-        logger.error(f"Erreur critique dans 'calculate_and_combine_weather_metrics': {str(e)}", exc_info=True)
+        logger.error(f"Erreur critique: {e}", exc_info=True)
         return False
