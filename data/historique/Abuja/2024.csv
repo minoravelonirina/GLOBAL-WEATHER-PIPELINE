@@ -1,4 +1,4 @@
-city,timestamp,temperature_celsius,pressure_mb,humidity
+city,timestamp,temp,pressure,humidity
 Abuja,2024-05-16 09:45:00,29.2,1012.0,67
 Abuja,2024-05-16 15:15:00,35.2,1007.0,43
 Abuja,2024-05-17 17:00:00,30.2,1010.0,56

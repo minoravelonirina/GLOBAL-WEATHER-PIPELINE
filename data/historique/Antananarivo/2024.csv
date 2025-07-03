@@ -1,4 +1,4 @@
-city,timestamp,temperature_celsius,pressure_mb,humidity
+city,timestamp,temp,pressure,humidity
 Antananarivo,2024-05-16 11:45:00,22.0,1024.0,53
 Antananarivo,2024-05-16 17:00:00,19.0,1023.0,64
 Antananarivo,2024-05-17 19:00:00,19.0,1022.0,78

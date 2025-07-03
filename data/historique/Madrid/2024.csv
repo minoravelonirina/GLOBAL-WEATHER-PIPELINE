@@ -1,4 +1,4 @@
-city,timestamp,temperature_celsius,pressure_mb,humidity
+city,timestamp,temp,pressure,humidity
 Madrid,2024-05-16 10:45:00,14.0,1011.0,47
 Madrid,2024-05-16 16:15:00,18.0,1009.0,39
 Madrid,2024-05-17 18:15:00,19.0,1010.0,40

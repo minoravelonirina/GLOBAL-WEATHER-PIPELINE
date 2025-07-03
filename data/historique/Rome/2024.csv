@@ -1,4 +1,4 @@
-city,timestamp,temperature_celsius,pressure_mb,humidity
+city,timestamp,temp,pressure,humidity
 Rome,2024-05-16 10:45:00,24.0,1006.0,57
 Rome,2024-05-16 16:00:00,22.0,1005.0,69
 Rome,2024-05-17 18:00:00,23.0,1013.0,38

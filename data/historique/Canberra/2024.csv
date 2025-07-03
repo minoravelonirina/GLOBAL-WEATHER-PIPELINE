@@ -1,4 +1,4 @@
-city,timestamp,temperature_celsius,pressure_mb,humidity
+city,timestamp,temp,pressure,humidity
 Canberra,2024-05-16 18:45:00,9.0,1027.0,87
 Canberra,2024-05-17 00:00:00,5.0,1027.0,100
 Canberra,2024-05-18 02:00:00,7.0,1023.0,66

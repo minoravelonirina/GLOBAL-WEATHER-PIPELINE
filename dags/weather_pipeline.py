@@ -14,7 +14,7 @@ default_args = {
 
 # Liste des villes à traiter
 CITIES = [
-    'Paris', 'Berlin', 'Tokyo', 'New Delhi','Rome', 'Ottawa', 'Madrid',
+    'Paris', 'Berlin', 'Tokyo','Rome', 'Ottawa', 'Madrid',
     'Canberra', 'Pretoria', 'Abuja', 'Antananarivo'
 ]
 
@@ -30,7 +30,7 @@ with DAG(
     extract_historical_task = PythonOperator(
         task_id='extract_and_validate_historical_data',
         python_callable=extract_historical_data,
-        op_args=[CITIES]
+        op_args=[CITIES, 3]
     )
 
     # 2. Tâches de récupération des données temps réel
