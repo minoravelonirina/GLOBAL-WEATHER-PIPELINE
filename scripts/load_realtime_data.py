@@ -3,6 +3,9 @@ from datetime import datetime
 import logging
 from pathlib import Path
 from typing import List, Dict, Any, Optional
+# from validate_and_normalize_data import validate_and_normalize_data
+from global_weather_pipeline.scripts.validate_and_normalize_data import validate_and_normalize_data
+
 
 def load_realtime_data(realtime_path: Path) -> List[pd.DataFrame]:
     """Charge et valide les données en temps réel."""

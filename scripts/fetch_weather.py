@@ -45,12 +45,22 @@ def fetch_realtime_weather(city:str, api_key:str, date:str) -> bool:
         data = response.json()
 
         # Préparation des données dans une dictionary
+        # weather_data = {
+        #     "city": city,
+        #     "temp": data["main"]["temp"],
+        #     "humidity": data["main"]["humidity"],
+        #     "pressure": data["main"]["pressure"],
+        #     "timestamp": datetime.now().month
+        # }
+
         weather_data = {
             "city": city,
+            "lat": data["coord"]["lat"],
+            "lon": data["coord"]["lon"],
+            "month": datetime.now().month,
+            "year": datetime.now().year,
             "temp": data["main"]["temp"],
-            "humidity": data["main"]["humidity"],
-            "pressure": data["main"]["pressure"],
-            "timestamp": datetime.now().isoformat() + "Z"
+            "humidity": data["main"]["humidity"]
         }
 
         # Met les donnees dans un dataframe
@@ -63,9 +73,7 @@ def fetch_realtime_weather(city:str, api_key:str, date:str) -> bool:
             # Concatener les donnees deja recolte avec les nouveaux et supprimer les duplications
             df = pd.concat([existing_df, df]).drop_duplicates()
         except FileNotFoundError:
-            #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
             pass
-            #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
         # Met les nouveaux donnees dans le fichier destinataire
         df.to_csv(csv_file, index=False)
@@ -80,3 +88,4 @@ def fetch_realtime_weather(city:str, api_key:str, date:str) -> bool:
     except Exception as e:
         logging.error(f"Erreur inattendue pour {city}: {str(e)}", exc_info=True)
         return False
+    

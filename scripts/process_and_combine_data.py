@@ -8,45 +8,6 @@ from global_weather_pipeline.scripts.load_realtime_data import load_realtime_dat
 from global_weather_pipeline.scripts.load_historical_data import load_historical_data
 
 
-def validate_and_normalize_data(df: pd.DataFrame, filename: str) -> Optional[pd.DataFrame]:
-    """Valide et normalise la structure des données."""
-    try:
-        # Normalisation des noms de colonnes
-        column_mapping = {
-            'city': 'city',
-            'temp': 'temp',
-            'timestamp': 'timestamp',
-            'pressure': 'pressure',
-            'humidity': 'humidity'
-        }
-        
-        df.columns = [column_mapping.get(col.lower(), col) for col in df.columns]
-        
-        # Vérification des colonnes requises
-        required_columns = ['city', 'temp', 'timestamp']
-        missing_columns = [col for col in required_columns if col not in df.columns]
-        
-        if missing_columns:
-            logging.warning(f"Fichier {filename} - Colonnes manquantes : {missing_columns}")
-            return None
-            
-        # Conversion des types de données
-        df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
-        df['city'] = df['city'].astype(str).str.strip().str.lower()
-        df['temp'] = pd.to_numeric(df['temp'], errors='coerce')
-        
-        #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-        # Nettoyage des données
-        #>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-        df.dropna(subset=['temp', 'timestamp'], inplace=True)
-        
-        return df
-        
-    except Exception as e:
-        logging.error(f"Erreur de normalisation pour {filename}: {str(e)}")
-        return None
-    
-
 def calculate_and_combine_weather_metrics(cities: List[str], date: str) -> bool:
     """Fonction principale pour calculer les métriques météorologiques."""
     try:
@@ -99,11 +60,13 @@ def calculate_and_combine_weather_metrics(cities: List[str], date: str) -> bool:
                 
                 metrics = {
                     "city": city.capitalize(),
-                    "date": date_str,
+                    "month" : processing_date.month,
+                    "year" : processing_date.year,
+                    "date" : date_str,
                     "temp_variability": temp_variability,
                     "stability_score": 1 / (1 + temp_variability) if temp_variability != 0 else 1.0,
                     "realtime_temp": realtime_record.get("temp", None),
-                    "realtime_humidity": realtime_record.get("humidity", None)
+                    "realtime_humidity": realtime_record.get("humidity", None),
                 }
                 processed_metrics.append(metrics)
                 logging.info(f"Métriques calculées pour {city.capitalize()}")
@@ -123,7 +86,7 @@ def calculate_and_combine_weather_metrics(cities: List[str], date: str) -> bool:
             try:
                 existing_df = pd.read_csv(output_file)
                 final_df = pd.concat([existing_df, metrics_df])
-                final_df.drop_duplicates(subset=["city", "date"], keep="last", inplace=True)
+                final_df.drop_duplicates(subset=["city", "date"], keep="last", inplace=True) # a corriger
             except Exception as e:
                 logging.error(f"Erreur de fusion des données: {str(e)}")
                 final_df = metrics_df

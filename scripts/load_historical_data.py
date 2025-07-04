@@ -3,6 +3,8 @@ from datetime import datetime
 import logging
 from pathlib import Path
 from typing import List, Dict, Any, Optional
+from global_weather_pipeline.scripts.validate_and_normalize_data import validate_and_normalize_data
+
 
 def load_historical_data(historical_path: Path, cities_normalized: List[str]) -> List[pd.DataFrame]:
     """Charge et valide les données historiques."""
