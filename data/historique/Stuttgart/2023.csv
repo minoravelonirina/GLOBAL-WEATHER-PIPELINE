@@ -1,4 +1,4 @@
-city,lat,lon,month,year,Rainfall (mm),temp,humidity
+city,lat,lon,month,year,rain,temp,humidity
 Stuttgart,48.7758,9.1829,1,2023,45.92,10.9,39
 Stuttgart,48.7758,9.1829,2,2023,23.51,6.9,35
 Stuttgart,48.7758,9.1829,3,2023,33.06,0.7,86

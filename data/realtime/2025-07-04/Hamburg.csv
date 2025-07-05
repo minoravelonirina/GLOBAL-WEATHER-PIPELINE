@@ -1,3 +1,8 @@
-city,lat,lon,month,year,temp,humidity
-Hamburg,53.55,10,7,2025,10.37,96
-Hamburg,53.55,10,7,2025,10.87,93
+city,lat,lon,month,year,temp,humidity,rain
+Hamburg,53.55,10,7,2025,10.37,96,
+Hamburg,53.55,10,7,2025,10.87,93,
+Hamburg,53.55,10,7,2025,11.9,91,0.0
+Hamburg,53.55,10,7,2025,11.36,93,0.0
+Hamburg,53.55,10,7,2025,16.78,70,0.0
+Hamburg,53.55,10,7,2025,16.86,67,0.0
+Hamburg,53.55,10,7,2025,17.59,64,0.0

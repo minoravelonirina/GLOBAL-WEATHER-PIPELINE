@@ -1,4 +1,4 @@
-city,lat,lon,month,year,Rainfall (mm),temp,humidity
+city,lat,lon,month,year,rain,temp,humidity
 Dresden,51.0504,13.7373,1,2021,171.6,-4.0,87
 Dresden,51.0504,13.7373,2,2021,199.53,9.2,41
 Dresden,51.0504,13.7373,3,2021,48.3,26.2,98

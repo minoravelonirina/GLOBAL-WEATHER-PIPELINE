@@ -39,6 +39,7 @@ def extract_historical_data(cities: list, years: int) -> None:
             'Longitude': 'lon',
             'Month': 'month',
             'Year': 'year',
+            'Rainfall (mm)' : 'rain',
             'Temperature (°C)': 'temp',
             'Humidity (%)': 'humidity'
             }

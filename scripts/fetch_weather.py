@@ -44,21 +44,14 @@ def fetch_realtime_weather(city:str, api_key:str, date:str) -> bool:
         response.raise_for_status()
         data = response.json()
 
-        # Préparation des données dans une dictionary
-        # weather_data = {
-        #     "city": city,
-        #     "temp": data["main"]["temp"],
-        #     "humidity": data["main"]["humidity"],
-        #     "pressure": data["main"]["pressure"],
-        #     "timestamp": datetime.now().month
-        # }
-
+        # Préparation des données dans une dictionarys
         weather_data = {
             "city": city,
             "lat": data["coord"]["lat"],
             "lon": data["coord"]["lon"],
             "month": datetime.now().month,
             "year": datetime.now().year,
+            "rain": data.get("rain", {}).get("1h", 0.0), 
             "temp": data["main"]["temp"],
             "humidity": data["main"]["humidity"]
         }

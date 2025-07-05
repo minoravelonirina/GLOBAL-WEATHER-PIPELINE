@@ -1,4 +1,4 @@
-city,lat,lon,month,year,Rainfall (mm),temp,humidity
+city,lat,lon,month,year,rain,temp,humidity
 Hanover,52.3759,9.732,1,2020,114.25,9.8,49
 Hanover,52.3759,9.732,2,2020,28.6,9.3,53
 Hanover,52.3759,9.732,3,2020,74.91,8.8,94

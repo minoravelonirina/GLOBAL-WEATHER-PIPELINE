@@ -1,4 +1,4 @@
-city,lat,lon,month,year,Rainfall (mm),temp,humidity
+city,lat,lon,month,year,rain,temp,humidity
 Munich,48.1351,11.582,1,2020,115.66,13.7,93
 Munich,48.1351,11.582,2,2020,29.39,14.3,88
 Munich,48.1351,11.582,3,2020,162.22,28.6,87

@@ -1,4 +1,4 @@
-city,lat,lon,month,year,Rainfall (mm),temp,humidity
+city,lat,lon,month,year,rain,temp,humidity
 Berlin,52.52,13.405,1,2020,190.15,12.7,94
 Berlin,52.52,13.405,2,2020,140.51,5.4,60
 Berlin,52.52,13.405,3,2020,59.61,8.7,59

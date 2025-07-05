@@ -1,4 +1,4 @@
-city,lat,lon,month,year,Rainfall (mm),temp,humidity
+city,lat,lon,month,year,rain,temp,humidity
 Hamburg,53.5511,9.9937,1,2023,66.44,34.0,98
 Hamburg,53.5511,9.9937,2,2023,138.72,16.8,52
 Hamburg,53.5511,9.9937,3,2023,154.22,6.0,82

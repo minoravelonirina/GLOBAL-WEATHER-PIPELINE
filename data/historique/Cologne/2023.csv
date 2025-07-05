@@ -1,4 +1,4 @@
-city,lat,lon,month,year,Rainfall (mm),temp,humidity
+city,lat,lon,month,year,rain,temp,humidity
 Cologne,50.9375,6.9603,1,2023,58.01,25.7,81
 Cologne,50.9375,6.9603,2,2023,174.28,4.1,78
 Cologne,50.9375,6.9603,3,2023,134.54,22.7,40

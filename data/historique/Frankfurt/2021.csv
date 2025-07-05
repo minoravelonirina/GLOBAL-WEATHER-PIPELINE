@@ -1,4 +1,4 @@
-city,lat,lon,month,year,Rainfall (mm),temp,humidity
+city,lat,lon,month,year,rain,temp,humidity
 Frankfurt,50.1109,8.6821,1,2021,40.53,17.0,67
 Frankfurt,50.1109,8.6821,2,2021,117.52,10.2,97
 Frankfurt,50.1109,8.6821,3,2021,140.23,19.3,82

@@ -12,6 +12,7 @@ def validate_and_normalize_data(df: pd.DataFrame, filename: str) -> Optional[pd.
             'city': 'city', 
             'lat': 'lat',
             'lon': 'lon',
+            'rain': 'rain',
             'month': 'month',
             'year': 'year',
             'temp': 'temp',

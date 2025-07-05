@@ -1,4 +1,4 @@
-city,lat,lon,month,year,Rainfall (mm),temp,humidity
+city,lat,lon,month,year,rain,temp,humidity
 Leipzig,51.3397,12.3731,1,2022,194.62,28.8,60
 Leipzig,51.3397,12.3731,2,2022,151.86,2.3,39
 Leipzig,51.3397,12.3731,3,2022,193.55,33.3,65

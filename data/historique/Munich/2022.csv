@@ -1,4 +1,4 @@
-city,lat,lon,month,year,Rainfall (mm),temp,humidity
+city,lat,lon,month,year,rain,temp,humidity
 Munich,48.1351,11.582,1,2022,15.25,11.7,79
 Munich,48.1351,11.582,2,2022,54.94,-0.3,69
 Munich,48.1351,11.582,3,2022,161.39,19.5,87

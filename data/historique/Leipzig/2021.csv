@@ -1,4 +1,4 @@
-city,lat,lon,month,year,Rainfall (mm),temp,humidity
+city,lat,lon,month,year,rain,temp,humidity
 Leipzig,51.3397,12.3731,1,2021,170.51,12.1,72
 Leipzig,51.3397,12.3731,2,2021,187.59,20.8,96
 Leipzig,51.3397,12.3731,3,2021,17.02,24.8,92

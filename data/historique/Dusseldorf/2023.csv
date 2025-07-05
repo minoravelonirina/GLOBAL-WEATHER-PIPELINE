@@ -1,4 +1,4 @@
-city,lat,lon,month,year,Rainfall (mm),temp,humidity
+city,lat,lon,month,year,rain,temp,humidity
 Dusseldorf,51.2277,6.7735,1,2023,153.3,4.8,33
 Dusseldorf,51.2277,6.7735,2,2023,116.74,9.3,68
 Dusseldorf,51.2277,6.7735,3,2023,156.39,34.6,93

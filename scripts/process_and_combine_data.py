@@ -41,6 +41,20 @@ def calculate_and_combine_weather_metrics(cities: List[str], date: str) -> bool:
         historical_df = pd.concat(historical_data, ignore_index=True)
         realtime_df = pd.concat(realtime_data, ignore_index=True)
         
+         # Calcul des jours pluvieux par ville (si colonne rain existe)
+        if "rain" in historical_df.columns:
+            historical_df["is_rainy"] = historical_df["rain"].fillna(0) > 0
+            # Calcul du total de pluie en mm par ville
+            rain_totals = (
+                historical_df.groupby("city")["rain"]
+                .sum()
+                .round(2)
+                .to_dict()
+            )
+        else:
+            logging.warning("Error about the rain value")
+            
+            
         # Traitement par ville
         processed_metrics = []
         for city in cities_normalized:
@@ -60,11 +74,12 @@ def calculate_and_combine_weather_metrics(cities: List[str], date: str) -> bool:
                 
                 metrics = {
                     "city": city.capitalize(),
-                    "month" : processing_date.month,
-                    "year" : processing_date.year,
-                    "date" : date_str,
-                    "temp_variability": temp_variability,
-                    "stability_score": 1 / (1 + temp_variability) if temp_variability != 0 else 1.0,
+                    "month": processing_date.month,
+                    "year": processing_date.year,
+                    "date": date_str,
+                    "rain": rain_totals.get(city, 0.0),
+                    "temp_variability": round(temp_variability, 3),
+                    "stability_score": round(1 / (1 + temp_variability), 3) if temp_variability != 0 else 1.0,
                     "realtime_temp": realtime_record.get("temp", None),
                     "realtime_humidity": realtime_record.get("humidity", None),
                 }

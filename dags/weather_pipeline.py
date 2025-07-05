@@ -4,6 +4,8 @@ from datetime import datetime, timedelta
 from global_weather_pipeline.scripts.fetch_weather import fetch_realtime_weather
 from global_weather_pipeline.scripts.extract_historical import extract_historical_data
 from global_weather_pipeline.scripts.process_and_combine_data import calculate_and_combine_weather_metrics
+from global_weather_pipeline.scripts.transform_data import transform_data
+
 
 # Configuration par défaut du DAG
 default_args = {
@@ -51,7 +53,23 @@ with DAG(
         python_callable=calculate_and_combine_weather_metrics,
         op_args=[CITIES, "{{ds}}"],
     )
+    
+    # 4. Tâche de transformation des données
+    transfrom_data = PythonOperator(
+        task_id="transfrom_data",
+        python_callable=transform_data,
+        op_args="{{ds}}"
+    )
 
     # ======= Orchestration des Tâches ======== #
+    # extract_historical_task >> calculate_and_combine_metrics_task
+    # fetch_realtime_tasks >> calculate_and_combine_metrics_task >> transfrom_data
+
+
+    # Chaque tâche dans fetch_realtime_tasks dépend de calculate_and_combine_metrics_task
     extract_historical_task >> calculate_and_combine_metrics_task
-    fetch_realtime_tasks >> calculate_and_combine_metrics_task
+    for task in fetch_realtime_tasks:
+        task >> calculate_and_combine_metrics_task
+
+    calculate_and_combine_metrics_task >> transfrom_data
+

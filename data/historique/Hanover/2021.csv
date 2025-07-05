@@ -1,4 +1,4 @@
-city,lat,lon,month,year,Rainfall (mm),temp,humidity
+city,lat,lon,month,year,rain,temp,humidity
 Hanover,52.3759,9.732,1,2021,43.64,21.5,53
 Hanover,52.3759,9.732,2,2021,174.81,18.8,64
 Hanover,52.3759,9.732,3,2021,49.93,11.6,53
