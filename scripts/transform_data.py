@@ -11,7 +11,6 @@ def transform_data(date: str):
     df = pd.read_csv(input_path)
 
     # Dossier de sortie
-    # output_dir = Path("dimensional_model")
     output_dir = project_dir/"data"/"dimensional_model"
     output_dir.mkdir(parents=True, exist_ok=True)
 

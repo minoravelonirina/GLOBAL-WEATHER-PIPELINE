@@ -37,7 +37,6 @@ def calculate_and_combine_weather_metrics(cities: List[str], date: str) -> bool:
             logging.error("Données insuffisantes pour le traitement")
             return False
             
-        # Combinaison des données
         historical_df = pd.concat(historical_data, ignore_index=True)
         realtime_df = pd.concat(realtime_data, ignore_index=True)
         
@@ -109,7 +108,7 @@ def calculate_and_combine_weather_metrics(cities: List[str], date: str) -> bool:
             try:
                 existing_df = pd.read_csv(output_file)
                 final_df = pd.concat([existing_df, metrics_df])
-                final_df.drop_duplicates(subset=["city", "date"], keep="last", inplace=True) # a corriger
+                final_df.drop_duplicates(subset=["city", "date"], keep="last", inplace=True)
             except Exception as e:
                 logging.error(f"Erreur de fusion des données: {str(e)}")
                 final_df = metrics_df
