@@ -1,8 +1,7 @@
 import pandas as pd
-from datetime import datetime
 import logging
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import List
 from global_weather_pipeline.scripts.validate_and_normalize_data import validate_and_normalize_data
 
 
@@ -33,7 +32,6 @@ def load_historical_data(historical_path: Path, cities_normalized: List[str]) ->
                 normalized_df = validate_and_normalize_data(df, year_file.name)
                 if normalized_df is not None:
                     historical_data.append(normalized_df)
-                    logging.info(f"Données chargées : {year_file.name} - {len(normalized_df)} lignes")
                 else:
                     logging.warning(f"Fichier ignoré : {year_file.name}")
                     

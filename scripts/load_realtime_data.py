@@ -1,9 +1,7 @@
 import pandas as pd
-from datetime import datetime
 import logging
 from pathlib import Path
-from typing import List, Dict, Any, Optional
-# from validate_and_normalize_data import validate_and_normalize_data
+from typing import List
 from global_weather_pipeline.scripts.validate_and_normalize_data import validate_and_normalize_data
 
 
@@ -22,7 +20,6 @@ def load_realtime_data(realtime_path: Path) -> List[pd.DataFrame]:
             
             if normalized_df is not None:
                 realtime_data.append(normalized_df)
-                logging.info(f"Données temps réel chargées : {file.name}")
             else:
                 logging.warning(f"Fichier temps réel ignoré : {file.name}")
                 

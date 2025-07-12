@@ -20,12 +20,6 @@ def fetch_realtime_weather(city:str, api_key:str, date:str) -> bool:
 
     # Session HTTP avec retry
     session = requests.Session()
-    # retries = Retry(
-    #     total=3,
-    #     backoff_factor=1,
-    #     status_forcelist=[500, 502, 503, 504]
-    # )
-    # session.mount('https://', HTTPAdapter(max_retries=retries))
 
     try:
         # Requête API

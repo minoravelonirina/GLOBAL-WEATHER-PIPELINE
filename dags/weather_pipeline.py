@@ -58,15 +58,10 @@ with DAG(
     transfrom_data = PythonOperator(
         task_id="transfrom_data",
         python_callable=transform_data,
-        op_args="{{ds}}"
+        op_args=["{{ds}}"]
     )
 
     # ======= Orchestration des Tâches ======== #
-    # extract_historical_task >> calculate_and_combine_metrics_task
-    # fetch_realtime_tasks >> calculate_and_combine_metrics_task >> transfrom_data
-
-
-    # Chaque tâche dans fetch_realtime_tasks dépend de calculate_and_combine_metrics_task
     extract_historical_task >> calculate_and_combine_metrics_task
     for task in fetch_realtime_tasks:
         task >> calculate_and_combine_metrics_task

@@ -2,7 +2,7 @@ import pandas as pd
 from datetime import datetime
 import logging
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import List
 from global_weather_pipeline.scripts.calculate_metrics import calculate_variability
 from global_weather_pipeline.scripts.load_realtime_data import load_realtime_data
 from global_weather_pipeline.scripts.load_historical_data import load_historical_data
@@ -41,9 +41,10 @@ def calculate_and_combine_weather_metrics(cities: List[str], date: str) -> bool:
         historical_df = pd.concat(historical_data, ignore_index=True)
         realtime_df = pd.concat(realtime_data, ignore_index=True)
         
-         # Calcul des jours pluvieux par ville (si colonne rain existe)
+        # Calcul des jours pluvieux par ville (si colonne rain existe)
         if "rain" in historical_df.columns:
             historical_df["is_rainy"] = historical_df["rain"].fillna(0) > 0
+            
             # Calcul du total de pluie en mm par ville
             rain_totals = (
                 historical_df.groupby("city")["rain"]
@@ -96,6 +97,13 @@ def calculate_and_combine_weather_metrics(cities: List[str], date: str) -> bool:
         # Sauvegarde des résultats
         output_dir.mkdir(parents=True, exist_ok=True)
         metrics_df = pd.DataFrame(processed_metrics)
+        
+            # Conversion des types de données
+        metrics_df['rain'] = metrics_df['rain'].astype('float64')
+        metrics_df['temp_variability'] = metrics_df['temp_variability'].astype('float64')
+        metrics_df['stability_score'] = metrics_df['stability_score'].astype('float64')
+        metrics_df['realtime_temp'] = metrics_df['realtime_temp'].astype('float64')
+        metrics_df['realtime_humidity'] = metrics_df['realtime_humidity'].astype('float64')
         
         if output_file.exists():
             try:

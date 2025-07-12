@@ -40,7 +40,7 @@ def transform_data(date: str):
     # ---------- 3. TABLE DE FAITS ----------
     fact_df = df[[
         "city_id", "date_id", "rain", "realtime_temp", "temp_variability", "stability_score"
-    ]].rename(columns={
+    ]].rename(columns={ 
         "rain": "total_rain",
         "realtime_temp": "avg_temp"
     })
